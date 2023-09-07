@@ -1,15 +1,22 @@
 import logging
 from azure.functions import HttpRequest, HttpResponse
-from shared_code.functions import get_current_year, get_current_round, get_current_date, upload_lake, check_prlm_sistema
-from shared_code.variables import CONTAINER_CONTROLE, CAMADA_RAW_NAME, STATUS_PARAMETRIZADO
+from shared_code.functions import (get_current_year,
+                                   get_current_round,
+                                   get_current_date,
+                                   upload_lake,
+                                   check_prlm_sistema,)
+from shared_code.variables import (CONTAINER_CONTROLE,
+                                   CAMADA_RAW_NAME,
+                                   STATUS_PARAMETRIZADO)
+
 
 def main(req: HttpRequest) -> HttpResponse:
     sistema = req.headers.get('sistema'.upper())
 
     valid_parms = check_prlm_sistema(sistema)
-    if valid_parms != True:
+    if valid_parms is not True:
         return valid_parms
-    
+
     json_control = {
         'odate': get_current_date(),
         'sistema': sistema,

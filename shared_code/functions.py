@@ -1,14 +1,17 @@
 from azure.functions import HttpResponse
-from shared_code.variables import COD_ERROR_PARAMETERS, CONNECTION_STRING, SISTEMAS
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
-from shared_code.connection_az import AzureStore
-import logging
 from datetime import datetime
-import json
 from pandas import read_csv
+import logging
+import json
 import io
+from shared_code.connection_az import AzureStore
+from shared_code.variables import (COD_ERROR_PARAMETERS,
+                                   CONNECTION_STRING,
+                                   SISTEMAS,)
 
 azure = AzureStore()
+
 
 def check_prlm_temp_round(parm1, parm2):
 
@@ -29,14 +32,16 @@ def check_prlm_temp_round(parm1, parm2):
 
     return True
 
+
 def check_prlm_sistema(sistema):
     if not sistema:
         return HttpResponse("Parâmetro 'SISTEMA' é obrigatório!")
 
-    if not sistema in SISTEMAS:
+    if sistema not in SISTEMAS:
         return HttpResponse("Parâmetro 'SISTEMA' é inválido. Favor configurar com um dos sequintes sistemas: {0}".format(SISTEMAS))
-    
+
     return True
+
 
 def upload_lake(data, filename, container, overwrite=True):
     logging.info("upload_lake: output={} container={} overwrite={}".format(filename, container, overwrite))
@@ -49,11 +54,12 @@ def upload_lake(data, filename, container, overwrite=True):
     elif filename.endswith('.json'):
         file_up = json.dumps(data)
     else:
-        logging.info("Warning! Tipo de arquivo diferente de csv ou json.") 
+        logging.info("Warning! Tipo de arquivo diferente de csv ou json.")
 
     blob_client.upload_blob(file_up, overwrite=overwrite)
-    
+
     logging.info("upload_lake: OK")
+
 
 def read_lake(conteiner, filename):
     file_client = azure.get_file(conteiner, filename)
@@ -67,16 +73,19 @@ def read_lake(conteiner, filename):
         elif filename.endswith('.json'):
             return json.loads(content)
         else:
-            logging.info("Warning! Tipo de arquivo diferente de csv ou json.") 
+            logging.info("Warning! Tipo de arquivo diferente de csv ou json.")
 
     except Exception as error_read_lake:
         logging.info('ERROR: error_read_lake: {0}'.format(error_read_lake))
 
+
 def get_current_year():
     return datetime.now().year
 
+
 def get_current_date():
     return datetime.now().strftime("%Y%m%d")
+
 
 def get_current_round(conteiner, layer):
     container_client = azure.get_container(conteiner)
