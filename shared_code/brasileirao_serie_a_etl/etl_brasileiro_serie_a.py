@@ -1,20 +1,34 @@
 import logging
 import requests
 from shared_code.variables import URL, HEADER, PRLM_BRA_A
-from pandas import read_html, to_numeric
-
+from pandas import read_html, to_numeric, concat
+from time import time
 
 def extract(temporada, rodada):
+    """
+    Extrai dados de uma URL com base na temporada e rodada.
+
+    Args:
+        temporada (str): A temporada para extrair os dados.
+        rodada (str): A rodada para extrair os dados.
+
+    Returns:
+        DataFrame or None: Um DataFrame com os dados extraídos ou None em caso de erro.
+    """
+    start_time = time()
     url = f'{URL}/schedule/bra-serie-a-{temporada}-spieltag/{rodada}/'
     r = requests.get(url, headers=HEADER)
 
+    logging.info("Extracao inicializada para temporada={0}, rodada={1}, URL={2}".format(temporada, rodada, url))
     dfs = read_html(r.text, header=0)
     if len(dfs[3]) != 0:
         df_rw = dfs[3].copy()
         df_rw['temporada'] = temporada
 
         logging.info("extraction inicialized")
-        logging.info("parm1={0} \nparm2={1}".format(temporada, rodada))
+        logging.info("Extraction completed for temporada={0}, rodada={1}".format(temporada, rodada))
+        tempo_exc = time() - start_time
+        logging.info("Tempo extracao: {0} segundos".format(tempo_exc))
         return df_rw
 
 
@@ -55,5 +69,6 @@ def transform(input):
     return df
 
 
-def load():
-    ...
+def load(mode, file, files=None):
+    if mode.lower() == 'lake':
+        return concat(files)
