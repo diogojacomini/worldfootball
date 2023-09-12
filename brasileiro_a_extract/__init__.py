@@ -69,7 +69,7 @@ def main(req: HttpRequest) -> HttpResponse:
                 overwrite=True
             )
             refresh_status(control=parameters, filename=filename_control, status=STATUS_CONCLUSAO_EXTRAC)
-            return HttpResponse("OK")
+            return HttpResponse("OK") # return if ok
         
         except Exception as error_fun:
             refresh_status(control=parameters, filename=filename_control, status=STATUS_ERROR_UPLOAD)
