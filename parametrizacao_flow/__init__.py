@@ -17,7 +17,11 @@ from shared_code.variables import (CONTAINER_CONTROLE,
 def main(req: HttpRequest) -> HttpResponse:
     """Função principal que faz o controle das arquiteturas ETL dos sistemas."""
     sistema = req.headers.get('sistema'.upper())
-    temporada_obs = get_current_year()
+
+    if req.headers.get('loop'.upper()):
+        temporada_obs = int(req.headers.get('loop'.upper()))
+    else:
+        temporada_obs = get_current_year()
 
     valid, message = check_prlm_sistema(sistema)
     if valid is not True:
