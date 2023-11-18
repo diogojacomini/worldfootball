@@ -50,7 +50,7 @@ def main(req: HttpRequest) -> HttpResponse:
             refresh_status(control=parameters, filename=filename_control, status=STATUS_INCOMPLETO_ERROR)
             return HttpResponse(message, status_code=COD_ERROR_PARAMETERS)
 
-        logging.info('|=== Extrac - Campeonato Brasileiro Serie A ===|')
+        logging.info(f'|=== Extrac - {PRLM_BRA_A} ===|')
         logging.info('|       Temporada: {0}       Rodada: {1}       |'.format(parm1, parm2))
 
         # Incializa a estracao dos dados
