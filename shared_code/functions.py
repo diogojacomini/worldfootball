@@ -7,6 +7,9 @@ import json
 import io
 from shared_code.connection_az import AzureStore
 from shared_code.variables import SISTEMAS, CONTAINER_CONTROLE
+from nbconvert.preprocessors import ExecutePreprocessor
+from nbformat import read, write
+import os
 
 azure = AzureStore()
 
@@ -84,6 +87,8 @@ def upload_lake(data, filename, container_name, overwrite=True):
 
     elif filename.endswith('.json'):
         file_content = json.dumps(data)
+    elif filename.endswith('.ipynb'):
+        file_content = data
     else:
         logging.info("upload_lake: !Warning! tipo do arquivo .{0} ".format(filename.split(".")[-1]))
         raise ValueError("Unsupported file type. Only '.csv' and '.json' are supported.")
@@ -114,6 +119,10 @@ def read_lake(container_name, filename):
 
         elif filename.endswith('.json'):
             return json.loads(content)
+        
+        elif filename.endswith('.ipynb'):
+            logging.warning("read_lake:ipynb")
+            return content#data.readall()#.decode('utf-8') 
         else:
             logging.warning("read_lake: Warning! Tipo de arquivo diferente de csv ou json.")
             logging.warning("Se novo tipo de arquivo for adicionado, é preciso atualizar a function: read_lake")
@@ -168,3 +177,45 @@ def list_files(container_name, layer):
     lista_de_nomes = [d.get('name') for d in list_dict_files]
     
     return list(map(lambda nome_arquivo: read_lake(container_name, nome_arquivo), lista_de_nomes))
+
+
+def download_blob(container_name, filename, download_path):
+    blob_client = azure.get_container(container_name).get_blob_client(filename)
+
+    with open(download_path, "wb") as f:
+        data = blob_client.download_blob()
+        data.readinto(f)
+
+
+def upload_blob(container_name, filename, upload_path):
+    blob_client = azure.get_container(container_name).get_blob_client(filename)
+
+    with open(upload_path, "rb") as data:
+        blob_client.upload_blob(data, overwrite=True)
+
+
+def execute_notebook(input_blob_url, output_blob_url, container_name):
+    # Baixe o notebook do blob
+    download_path = 'temp_input_notebook.ipynb'
+    download_blob(container_name=container_name, filename=input_blob_url, download_path=download_path)
+
+    with open(download_path, 'r', encoding='utf-8') as f:
+        notebook = read(f, as_version=4)
+
+    # Configurar o preprocessor para executar as células
+    executor = ExecutePreprocessor(timeout=-1, kernel_name='python3')
+
+    # Executar as células
+    executor.preprocess(notebook, {'metadata': {'path': '.'}})
+
+    # Salvar o notebook modificado
+    upload_path = 'temp_output_notebook.ipynb'
+    with open(upload_path, 'w', encoding='utf-8') as f:
+        write(notebook, f)
+
+    # Upload do notebook modificado de volta para o blob
+    upload_blob(container_name, output_blob_url, upload_path)
+
+    # Remova os arquivos temporários
+    os.remove(download_path)
+    os.remove(upload_path)

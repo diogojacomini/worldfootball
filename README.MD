@@ -5,3 +5,10 @@ https://learn.microsoft.com/pt-br/azure/azure-functions/functions-run-local?tabs
 
 
 https://learn.microsoft.com/pt-br/azure/azure-functions/functions-core-tools-reference?tabs=v2#func-azure-functionapp-publish
+
+avivar o ambiente:
+- windows:
+    - \.venv\Scripts\activate 
+
+Cria uma função:
+ - func new

@@ -2,6 +2,7 @@
 SISTEMAS = [
     'campeonato-brasileiro'
 ]
+TOKEN = 'bwcs2eb'
 
 # utils
 URL = 'https://www.worldfootball.net'
